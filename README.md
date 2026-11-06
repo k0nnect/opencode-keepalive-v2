@@ -2,6 +2,10 @@
 
 keep your coding agent from stalling out ~ a v2-compatible port of [opencode-keepalive](https://github.com/joeyism/opencode-keepalive) that actually loads on opencode 2.x.
 
+![a terminal tails the plugin's heartbeat log: idle heartbeats, a subagent picks up a task and runs npm test, then goes quiet; keepalive flags the stall, aborts the stuck subagent and nudges its parent, which resumes](assets/demo.gif)
+
+every line in the gif is real plugin output from a scripted stall. see [`tools/demo`](tools/demo) for how it's made.
+
 the original plugin is written for opencode's v1 plugin api (`export default (ctx) => hooks`), so on opencode 2.x it fails to load with:
 
 ```
