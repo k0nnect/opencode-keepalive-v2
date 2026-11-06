@@ -2,3 +2,4 @@ node_modules/
 *.log
 *.ndjson
 .DS_Store
+tools/demo/.work/
