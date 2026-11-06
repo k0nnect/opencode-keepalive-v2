@@ -1,24 +1,24 @@
 # opencode-keepalive-v2
 
-keep your coding agent from stalling out ~ a v2-compatible port of [opencode-keepalive](https://github.com/joeyism/opencode-keepalive) that actually loads on opencode 2.x.
+keep your coding agent from stalling out ~ a port of [opencode-keepalive](https://github.com/joeyism/opencode-keepalive) that loads on opencode 2.x.
 
 ![a terminal tails the plugin's heartbeat log: idle heartbeats, a subagent picks up a task and runs npm test, then goes quiet; keepalive flags the stall, aborts the stuck subagent and nudges its parent, which resumes](assets/demo.gif)
 
-every line in the gif is real plugin output from a scripted stall. see [`tools/demo`](tools/demo) for how it's made.
+the gif is real plugin output from a scripted stall ([how it's made](tools/demo)).
 
-the original plugin is written for opencode's v1 plugin api (`export default (ctx) => hooks`), so on opencode 2.x it fails to load with:
+joeyism's plugin targets the v1 plugin api (`export default (ctx) => hooks`), so opencode 2.x refuses to load it:
 
 ```
 Plugin must export a default definition with an id and an effect or setup function.
 ```
 
-this is a thin port. it keeps joeyism's heartbeat / stall-detection / recovery engine unchanged and bridges it to the v2 plugin api.
+this repo keeps that engine as-is and adds a small adapter, `src/index.js`, for the v2 api.
 
 ## what it does
 
-- **liveness heartbeats** — appends newline-delimited json to a local log on a fixed cadence, so an external watchdog (or just `tail -f`) can tell your agent is still alive.
-- **stall detection** — notices when a session is busy but has stopped making progress for too long.
-- **auto-recovery** — optionally aborts a stuck *subagent* and nudges its parent to resume. your main session is never aborted.
+- appends a heartbeat to a local ndjson log every 10s (configurable), so a watchdog or `tail -f` can see the agent is alive.
+- notices when a session is busy but hasn't made progress for `stallMs`.
+- with `childStallAction: "abort-resume-parent"`, aborts a stuck subagent and nudges its parent to pick the work back up. it never aborts your main session.
 
 ## install
 
@@ -29,7 +29,7 @@ git clone https://github.com/k0nnect/opencode-keepalive-v2 \
   ~/.config/opencode/local-plugins/opencode-keepalive-v2
 ```
 
-then point your `~/.config/opencode/opencode.jsonc` at it:
+add it to `~/.config/opencode/opencode.jsonc`:
 
 ```jsonc
 {
@@ -42,7 +42,7 @@ then point your `~/.config/opencode/opencode.jsonc` at it:
 }
 ```
 
-restart opencode (or let the file watcher reload it) and you're done. by default it writes heartbeats to `~/.local/state/opencode-keepalive/heartbeat.ndjson`.
+then restart opencode. heartbeats go to `~/.local/state/opencode-keepalive/heartbeat.ndjson` by default.
 
 ## options
 
@@ -55,7 +55,7 @@ restart opencode (or let the file watcher reload it) and you're done. by default
 | `output` | `file` | `file`, `stdout`, `stderr`, or `none` |
 | `logFile` | `~/.local/state/opencode-keepalive/heartbeat.ndjson` | where the ndjson goes when `output` is `file` |
 
-watch it live:
+to watch it live:
 
 ```bash
 tail -f ~/.local/state/opencode-keepalive/heartbeat.ndjson | jq .
@@ -63,18 +63,17 @@ tail -f ~/.local/state/opencode-keepalive/heartbeat.ndjson | jq .
 
 ## how the port works
 
-opencode 2.x replaced the v1 plugin shape with `export default { id, setup }` and moved the api onto the plugin context. this adapter:
+opencode 2.x expects `export default { id, setup }` and moved the plugin api onto the context object. the adapter:
 
-- wraps the engine in `{ id, setup }`, and keeps exactly **one** engine per process — opencode can load a local plugin along more than one discovery path, so a small process-level guard stops heartbeats and recovery from doubling up.
-- drives the v1 `event` hook from `ctx.event.subscribe()`, and the `tool.execute.before` / `tool.execute.after` hooks from `ctx.tool.hook(...)`.
-- shims the removed `ctx.client.session.*` onto `ctx.session.*` so the recovery path (abort + parent nudge) works unchanged.
-
-everything under `src/` except `index.js` is joeyism's engine, vendored as-is.
+- wraps the engine in `{ id, setup }`.
+- feeds the old `event` hook from `ctx.event.subscribe()`, and `tool.execute.before` / `tool.execute.after` from `ctx.tool.hook(...)`.
+- maps the removed `ctx.client.session.*` calls onto `ctx.session.*`, so the abort and the parent nudge still work.
+- runs one copy of the engine per process. opencode can load a local plugin from more than one path, and without that guard every heartbeat and recovery would happen twice.
 
 ## credits
 
-the heartbeat / stall-detection / recovery engine is [opencode-keepalive](https://github.com/joeyism/opencode-keepalive) by [joeyism](https://github.com/joeyism), vendored unchanged under `src/` (mit). this repo adds the v2 adapter (`src/index.js`) and the single-instance guard. see [`NOTICE`](NOTICE).
+the engine is [opencode-keepalive](https://github.com/joeyism/opencode-keepalive) by [joeyism](https://github.com/joeyism), copied unchanged into `src/` under mit. this repo adds `src/index.js`. see [`NOTICE`](NOTICE).
 
 ## license
 
-mit — see [`LICENSE`](LICENSE).
+[mit](LICENSE)
