@@ -1,0 +1,34 @@
+{
+  "name": "opencode-keepalive-v2",
+  "version": "0.1.0",
+  "description": "a v2-compatible port of opencode-keepalive: liveness heartbeats and stall recovery for opencode 2.x",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "keepalive",
+    "heartbeat",
+    "watchdog",
+    "agent"
+  ],
+  "author": "k0nnect",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k0nnect/opencode-keepalive-v2.git"
+  },
+  "homepage": "https://github.com/k0nnect/opencode-keepalive-v2#readme",
+  "bugs": {
+    "url": "https://github.com/k0nnect/opencode-keepalive-v2/issues"
+  }
+}

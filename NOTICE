@@ -1,0 +1,21 @@
+opencode-keepalive-v2
+=====================
+
+this repository is a v2-compatible port of opencode-keepalive by joeyism:
+  https://github.com/joeyism/opencode-keepalive  (MIT)
+
+the following files under src/ are vendored unchanged from
+opencode-keepalive@0.1.0 and are Copyright (c) 2026 joeyism, MIT:
+
+  bash-command.js
+  config.js
+  heartbeat.js
+  hooks.js
+  recover.js
+  sessions.js
+  state.js
+  tools.js
+  types.js
+
+src/index.js is the opencode v2 adapter added by this repository,
+Copyright (c) 2026 k0nnect, MIT.
